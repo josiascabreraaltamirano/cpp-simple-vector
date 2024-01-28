@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdlib>
+#include <algorithm>
 
 template <typename Type>
 class ArrayPtr {
@@ -9,7 +10,7 @@ public:
 
     // Создаёт в куче массив из size элементов типа Type.
     // Если size == 0, поле raw_ptr_ должно быть равно nullptr
-explicit ArrayPtr(size_t size) { raw_ptr_ = (size == 0) ? nullptr : new Type[size]; }
+    explicit ArrayPtr(size_t size) { raw_ptr_ = (size == 0) ? nullptr : new Type[size]; }
 
     // Конструктор из сырого указателя, хранящего адрес массива в куче либо nullptr
     explicit ArrayPtr(Type* raw_ptr) noexcept {
@@ -20,12 +21,26 @@ explicit ArrayPtr(size_t size) { raw_ptr_ = (size == 0) ? nullptr : new Type[siz
     // Запрещаем копирование
     ArrayPtr(const ArrayPtr&) = delete;
 
-    ~ArrayPtr() {
-        delete [] raw_ptr_;
+    ArrayPtr(ArrayPtr<Type>&& other) 
+    : raw_ptr_(nullptr)
+    {
+        swap(other);
     }
 
     // Запрещаем присваивание
     ArrayPtr& operator=(const ArrayPtr&) = delete;
+
+    ArrayPtr& operator=(ArrayPtr<Type>&& other) 
+    //: raw_ptr_(nullptr)
+    {
+        if (&(*this) != &other) {
+            swap(other);
+        }
+    }
+
+    ~ArrayPtr() {
+        delete [] raw_ptr_;
+    }
 
     // Прекращает владением массивом в памяти, возвращает значение адреса массива
     // После вызова метода указатель на массив должен обнулиться
@@ -57,9 +72,10 @@ explicit ArrayPtr(size_t size) { raw_ptr_ = (size == 0) ? nullptr : new Type[siz
 
     // Обменивается значениям указателя на массив с объектом other
     void swap(ArrayPtr& other) noexcept {
-        Type* temp = Get();
-        raw_ptr_ = other.Get();
-        other.raw_ptr_ = temp;
+        //Type* temp = Get();
+        //raw_ptr_ = other.Get();
+        //other.raw_ptr_ = temp;
+        std::swap(raw_ptr_, other.raw_ptr_);
         
     }
 
